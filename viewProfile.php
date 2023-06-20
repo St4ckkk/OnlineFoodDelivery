@@ -8,7 +8,7 @@
     <meta name="description" content="Bootstrap navbar examples for any type of project, Bootstrap 4" />
 
     <title>Profile </title>
-    <link rel="icon" href="img/logo.jpg" type="image/x-icon">
+    <link rel="icon" href="img/logo.png" type="image/x-icon">
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
@@ -166,13 +166,16 @@
                     <div class="card h-100">
                         <div class="card-body">
                             <div class="text-center">
-                                <img class="rounded-circle mb-3 bg-dark" src="img/person-<?php echo $userId; ?>.jpg" onError="this.src = 'img/profilePic.jpg'" style="width: 215px; height: 215px; padding: 1px;">
+                                <img class="rounded-circle mb-3 bg-dark" src="img/profile-<?php echo $userId; ?>.jpg" onError="this.src = 'img/profilePic.jpg'" style="width: 215px; height: 215px; padding: 1px;">
+                                <progress value="0" max="100"></progress>
+                                <p class="success"></p>
+                                <p class="error"></p>
                             </div>
                             <form action="partials/_manageProfile.php" method="POST">
                                 <small>Remove Image: </small>
                                 <button type="submit" class="btn btn-primary btn-sm" name="removeProfilePic">Remove</button>
                             </form>
-                            <form action="partials/_manageProfile.php" method="POST" enctype="multipart/form-data" style="margin-top: 7px;">
+                            <form name="upload-form" action="partials/_manageProfile.php" method="POST" enctype="multipart/form-data" style="margin-top: 7px;">
                                 <div class="upload-btn-wrapper">
                                     <small>Change Image:</small>
                                     <button class="btn btn-secondary btn-sm">Choose</button>
@@ -180,7 +183,38 @@
                                 </div>
                                 <button type="submit" name="updateProfilePic" class="btn btn-primary btn-sm" style="margin-top: -20px;">Update</button>
                             </form>
+                            <script>
+                                document.forms['upload-form'].onsubmit = function(e) {
+                                    e.preventDefault();
 
+                                    let error = document.querySelector(".error");
+                                    let succes = document.querySelector(".success");
+                                    let file = this.image.files[0];
+                                    error.innerHTML = "";
+
+                                    if (!file) { 
+                                        error.innerHTML = "Please Select a file";
+                                        return false;
+                                    }
+
+                                    let formdata = new FormData();
+                                    formdata.append("file", file);
+
+                                    let http = new XMLHttpRequest();
+                                    http.upload.addEventListener("progress", function(event) {
+                                        let percent = (event.loaded / event.total) * 100;
+                                        document.querySelector("progress").value = Math.round(percent);
+                                    });
+                                    http.addEventListener("load", function() {
+                                        if (this.readyState == 4 && this, status == 200) {
+                                            succes.innerHTML = 'File ${this.responseText} uploaded Successfully';
+                                        }
+                                    });
+
+                                    http.open("post", "/OnlineFoodDelivery/partials/_manageProfile.php", true);
+                                    http.send(formdata);
+                                }
+                            </script>
                             <ul class="list-unstyled">
                                 <li class="my-2"><a href="viewProfile.php">@<?php echo $username ?></a></li>
                                 <li class="my-2">
