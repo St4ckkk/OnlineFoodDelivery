@@ -135,34 +135,21 @@ while ($statusmodalrow = mysqli_fetch_assoc($statusmodalresult)) {
     else
         $tstatus = "Order Cancelled.";
 
-    if ($status >= 1 && $status <= 4) {
-        $deliveryDetailSql = "SELECT * FROM `deliverydetails` WHERE `orderId`= $orderid";
-        $deliveryDetailResult = mysqli_query($conn, $deliveryDetailSql);
-        if ($deliveryDetailResult) {
-            $deliveryDetailRow = mysqli_fetch_assoc($deliveryDetailResult);
-            if ($deliveryDetailRow) {
-                $trackId = $deliveryDetailRow['id'];
-                $deliveryBoyName = $deliveryDetailRow['deliveryBoyName'];
-                $deliveryBoyPhoneNo = $deliveryDetailRow['deliveryBoyPhoneNo'];
-                $deliveryTime = $deliveryDetailRow['deliveryTime'];
-            } else {
-                // Handle the case when no delivery details are found
-                // Set default values or display an error message
-                $trackId = "N/A";
-                $deliveryBoyName = "N/A";
-                $deliveryBoyPhoneNo = "N/A";
-                $deliveryTime = "N/A";
-            }
-        } else {
-            die('Error: ' . mysqli_error($conn));
-        }
+    $deliveryDetailSql = "SELECT * FROM `deliverydetails` WHERE `orderId` = $orderid";
+    $deliveryDetailResult = mysqli_query($conn, $deliveryDetailSql);
+    $deliveryDetailRow = mysqli_fetch_assoc($deliveryDetailResult);
 
-        if ($status == 4)
-            $deliveryTime = 'xx';
+    $deliveryBoyName = ""; // Initialize the variable
+
+    if ($deliveryDetailRow) {
+        $trackId = $deliveryDetailRow['id'];
+        $deliveryBoyName = $deliveryDetailRow['deliveryBoyName'];
+        $deliveryBoyPhoneNo = $deliveryDetailRow['deliveryBoyPhoneNo'];
+        $deliveryTime = $deliveryDetailRow['deliveryTime'];
     } else {
         $trackId = 'xxxxx';
-        $deliveryBoyName = 'xxx';
-        $deliveryBoyPhoneNo = 'xxx';
+        $deliveryBoyName = '';
+        $deliveryBoyPhoneNo = '';
         $deliveryTime = 'xx';
     }
 
@@ -181,7 +168,7 @@ while ($statusmodalrow = mysqli_fetch_assoc($statusmodalresult)) {
                     <div class="container" style="padding-right: 0px;padding-left: 0px;">
                         <article class="card">
                             <div class="card-body">
-
+                                <h6><strong>Order ID:</strong> #<?php echo $orderid; ?></h6>
                                 <article class="card">
                                     <div class="card-body row">
                                         <div class="col"> <strong>Estimated Delivery time:</strong> <br><?php echo $deliveryTime; ?> minute </div>
@@ -217,11 +204,23 @@ while ($statusmodalrow = mysqli_fetch_assoc($statusmodalresult)) {
                                           <div class="step active"> <span class="icon"> <i class="fa fa-truck"></i> </span> <span class="text"> On the way </span> </div>
                                           <div class="step"> <span class="icon"> <i class="fa fa-box"></i> </span> <span class="text">Order Delivered</span> </div>';
                                     } elseif ($status == 4) {
+
                                         echo '<div class="step active"> <span class="icon"> <i class="fa fa-check"></i> </span> <span class="text">Order Placed</span> </div>
                                           <div class="step active"> <span class="icon"> <i class="fa fa-check"></i> </span> <span class="text">Order Confirmed</span> </div>
                                           <div class="step active"> <span class="icon"> <i class="fa fa-check"></i> </span> <span class="text"> Preparing your Order</span> </div>
                                           <div class="step active"> <span class="icon"> <i class="fa fa-truck"></i> </span> <span class="text"> On the way </span> </div>
                                           <div class="step active"> <span class="icon"> <i class="fa fa-box"></i> </span> <span class="text">Order Delivered</span> </div>';
+                                        $insertSalesSql = "INSERT INTO sales (orderId, amount) VALUES ('$orderId', '$amount')";
+                                        $passSql = "SELECT id FROM users WHERE id = '$userId'";
+                                        $resultPass = mysqli_query($conn, $passSql);
+
+                                        if ($resultPass && mysqli_num_rows($resultPass) > 0) {
+                                            $rowPass = mysqli_fetch_assoc($resultPass);
+                                            $userId = $rowPass['id'];
+
+                                            // Insert the data into the delivereditems table
+                                            $insertDeliveredItemsSql = "INSERT INTO delivereditems (orderId, userId, itemId, firstName, lastName, itemName, itemPrice, paymentMode, orderDate) VALUES ('$orderId', '$userId', '$itemId', '$firstName', '$lastName', '$itemName', '$itemPrice', '$paymentMode', '$orderDate')";
+                                        }
                                     } elseif ($status == 5) {
                                         echo '<div class="step active"> <span class="icon"> <i class="fa fa-check"></i> </span> <span class="text">Order Placed</span> </div>
                                           <div class="step deactive"> <span class="icon"> <i class="fa fa-times"></i> </span> <span class="text">Order Denied.</span> </div>';
