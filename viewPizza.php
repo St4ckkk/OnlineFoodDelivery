@@ -9,7 +9,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
-    <title id=title>Pizza</title>
+    <title id=title>Food</title>
     <link rel="icon" href="img/food.png" type="image/x-icon">
     <link rel="stylesheet" href="assets/css/custom.css">
     <style>
@@ -27,7 +27,7 @@
         <div class="row jumbotron">
             <?php
             $itemId = $_GET['itemid'];
-            $sql = "SELECT * FROM `item` WHERE itemId = $itemId";
+            $sql = "SELECT * FROM `items` WHERE itemId = $itemId";
             $result = mysqli_query($conn, $sql);
             $row = mysqli_fetch_assoc($result);
             $itemName = $row['itemName'];
@@ -40,7 +40,7 @@
             </script>
             <?php
             echo  '<div class="col-md-4">
-                <img src="img/food-' . $itemId . '.jpg" width="249px" height="262px">
+                <img src="img/item-' . $itemId . '.jpg" width="249px" height="262px">
             </div>
             <div class="col-md-8 my-4">
                 <h3>' . $itemName . '</h3>
