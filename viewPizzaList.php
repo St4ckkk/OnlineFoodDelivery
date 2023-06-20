@@ -65,7 +65,7 @@
 
                 echo '<div class="col-xs-3 col-sm-3 col-md-3">
                         <div class="card" style="width: 18rem;">
-                            <img src="img/food-' . $itemId . '.jpg" class="card-img-top" alt="image for this food" width="249px" height="270px">
+                            <img src="img/item-' . $itemId . '.jpg" class="card-img-top" alt="image for this food" width="249px" height="270px">
                             <div class="card-body">
                                 <h5 class="card-title">' . substr($itemName, 0, 20) . '...</h5>
                                 <h6 style="color: #ff0000">₱ ' . $itemPrice . '/-</h6>
