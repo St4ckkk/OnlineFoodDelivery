@@ -210,16 +210,24 @@ while ($statusmodalrow = mysqli_fetch_assoc($statusmodalresult)) {
                                           <div class="step active"> <span class="icon"> <i class="fa fa-check"></i> </span> <span class="text"> Preparing your Order</span> </div>
                                           <div class="step active"> <span class="icon"> <i class="fa fa-truck"></i> </span> <span class="text"> On the way </span> </div>
                                           <div class="step active"> <span class="icon"> <i class="fa fa-box"></i> </span> <span class="text">Order Delivered</span> </div>';
-                                        $insertSalesSql = "INSERT INTO sales (orderId, amount) VALUES ('$orderId', '$amount')";
-                                        $passSql = "SELECT id FROM users WHERE id = '$userId'";
-                                        $resultPass = mysqli_query($conn, $passSql);
+                                        $checkSalesSql = "SELECT COUNT(*) AS count FROM sales WHERE orderId = '$orderId'";
+                                        $resultCheckSales = mysqli_query($conn, $checkSalesSql);
+                                        $rowCheckSales = mysqli_fetch_assoc($resultCheckSales);
+                                        $count = $rowCheckSales['count'];
 
-                                        if ($resultPass && mysqli_num_rows($resultPass) > 0) {
-                                            $rowPass = mysqli_fetch_assoc($resultPass);
-                                            $userId = $rowPass['id'];
+                                        if ($count == 0) {
+                                            $insertSalesSql = "INSERT INTO sales (orderId, amount) VALUES ('$orderId', '$amount')";
+                                            $salesResult = mysqli_query($conn, $insertSalesSql);
+                                        }
 
-                                            // Insert the data into the delivereditems table
+                                        $checkDeliveredItemsSql = "SELECT COUNT(*) AS count FROM delivereditems WHERE orderId = '$orderId'";
+                                        $resultCheckDeliveredItems = mysqli_query($conn, $checkDeliveredItemsSql);
+                                        $rowCheckDeliveredItems = mysqli_fetch_assoc($resultCheckDeliveredItems);
+                                        $count = $rowCheckDeliveredItems['count'];
+                                        if ($count == 0) {
+
                                             $insertDeliveredItemsSql = "INSERT INTO delivereditems (orderId, userId, itemId, firstName, lastName, itemName, itemPrice, paymentMode, orderDate) VALUES ('$orderId', '$userId', '$itemId', '$firstName', '$lastName', '$itemName', '$itemPrice', '$paymentMode', '$orderDate')";
+                                            $resultDeliveredItems = mysqli_query($conn, $insertDeliveredItemsSql);
                                         }
                                     } elseif ($status == 5) {
                                         echo '<div class="step active"> <span class="icon"> <i class="fa fa-check"></i> </span> <span class="text">Order Placed</span> </div>
