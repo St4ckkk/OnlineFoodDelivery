@@ -142,7 +142,20 @@
 
         $orderQuery = "SELECT COUNT(*) AS order_count FROM orders";
         $orderResult = mysqli_query($conn, $orderQuery);
-        $orderCount = mysqli_fetch_assoc($orderResult)['order_count'];
+        $orderData = mysqli_fetch_assoc($orderResult);
+        $orderCount = $orderData['order_count'];
+
+        $orderStatusQuery = "SELECT orderStatus FROM orders";
+        $orderStatusResult = mysqli_query($conn, $orderStatusQuery);
+
+        while ($orderStatusData = mysqli_fetch_assoc($orderStatusResult)) {
+            if ($orderStatusData['orderStatus'] == 4) {
+                $orderCount--;
+            }
+        }
+
+
+
 
 
         // Insert the delivered items into the delivered_items table
@@ -204,6 +217,7 @@
                         <i class="fas fa-users fs-1 primary-text border rounded-full secondary-bg p-3"></i>
                     </div>
                 </div>
+
                 <div class="col-md-3">
                     <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
                         <div>
