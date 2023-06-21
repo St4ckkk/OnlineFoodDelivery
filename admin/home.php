@@ -107,7 +107,7 @@
 </head>
 
 <body>
-    <div class="content">
+    <div class="content mt-5">
         <?php
         $server = "localhost";
         $username = "root";
@@ -321,7 +321,7 @@
 
         toggleButton.onclick = function() {
             el.classList.toggle("toggled");
-        };
+        };  
     </script>
 </body>
 
