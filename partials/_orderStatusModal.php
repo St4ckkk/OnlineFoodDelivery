@@ -203,31 +203,52 @@ while ($statusmodalrow = mysqli_fetch_assoc($statusmodalresult)) {
                                           <div class="step active"> <span class="icon"> <i class="fa fa-check"></i> </span> <span class="text"> Preparing your Order</span> </div>
                                           <div class="step active"> <span class="icon"> <i class="fa fa-truck"></i> </span> <span class="text"> On the way </span> </div>
                                           <div class="step"> <span class="icon"> <i class="fa fa-box"></i> </span> <span class="text">Order Delivered</span> </div>';
-                                    } elseif ($status == 4) {
-
+                                    } else if ($status == 4) {
                                         echo '<div class="step active"> <span class="icon"> <i class="fa fa-check"></i> </span> <span class="text">Order Placed</span> </div>
-                                          <div class="step active"> <span class="icon"> <i class="fa fa-check"></i> </span> <span class="text">Order Confirmed</span> </div>
-                                          <div class="step active"> <span class="icon"> <i class="fa fa-check"></i> </span> <span class="text"> Preparing your Order</span> </div>
-                                          <div class="step active"> <span class="icon"> <i class="fa fa-truck"></i> </span> <span class="text"> On the way </span> </div>
-                                          <div class="step active"> <span class="icon"> <i class="fa fa-box"></i> </span> <span class="text">Order Delivered</span> </div>';
-                                        $checkSalesSql = "SELECT COUNT(*) AS count FROM sales WHERE orderId = '$orderId'";
-                                        $resultCheckSales = mysqli_query($conn, $checkSalesSql);
-                                        $rowCheckSales = mysqli_fetch_assoc($resultCheckSales);
-                                        $count = $rowCheckSales['count'];
+                                              <div class="step active"> <span class="icon"> <i class="fa fa-check"></i> </span> <span class="text">Order Confirmed</span> </div>
+                                              <div class="step active"> <span class="icon"> <i class="fa fa-check"></i> </span> <span class="text">Preparing your Order</span> </div>
+                                              <div class="step active"> <span class="icon"> <i class="fa fa-truck"></i> </span> <span class="text">On the way</span> </div>
+                                              <div class="step active"> <span class="icon"> <i class="fa fa-box"></i> </span> <span class="text">Order Delivered</span> </div>';
+                                        $checkOrderStatusSql = "SELECT orderStatus FROM orders WHERE orderId = '$orderId'";
+                                        $resultOrderStatus = mysqli_query($conn, $checkOrderStatusSql);
+                                        $rowOrderStatus = mysqli_fetch_assoc($resultOrderStatus);
+                                        $orderStatus = $rowOrderStatus['orderStatus'];
+                                        if ($orderStatus == 4) {
+                                            // Check if the sales record exists
+                                            $checkSalesSql = "SELECT COUNT(*) AS count FROM sales WHERE orderId = '$orderId'";
+                                            $resultCheckSales = mysqli_query($conn, $checkSalesSql);
+                                            $rowCheckSales = mysqli_fetch_assoc($resultCheckSales);
+                                            $countSales = $rowCheckSales['count'];
 
-                                        if ($count == 0) {
-                                            $insertSalesSql = "INSERT INTO sales (orderId, amount) VALUES ('$orderId', '$amount')";
-                                            $salesResult = mysqli_query($conn, $insertSalesSql);
-                                        }
+                                            if ($countSales == 0) {
+                                                // Insert sales record
+                                                $insertSalesSql = "INSERT INTO sales (orderId, amount) VALUES ('$orderId', '$amount')";
+                                                $salesResult = mysqli_query($conn, $insertSalesSql);
+                                            }
 
-                                        $checkDeliveredItemsSql = "SELECT COUNT(*) AS count FROM delivereditems WHERE orderId = '$orderId'";
-                                        $resultCheckDeliveredItems = mysqli_query($conn, $checkDeliveredItemsSql);
-                                        $rowCheckDeliveredItems = mysqli_fetch_assoc($resultCheckDeliveredItems);
-                                        $count = $rowCheckDeliveredItems['count'];
-                                        if ($count == 0) {
+                                            // Check if the delivered items record exists
+                                            $checkDeliveredItemsSql = "SELECT COUNT(*) AS count FROM delivereditems WHERE orderId = '$orderId'";
+                                            $resultCheckDeliveredItems = mysqli_query($conn, $checkDeliveredItemsSql);
+                                            $rowCheckDeliveredItems = mysqli_fetch_assoc($resultCheckDeliveredItems);
+                                            $countDeliveredItems = $rowCheckDeliveredItems['count'];
 
-                                            $insertDeliveredItemsSql = "INSERT INTO delivereditems (orderId, userId, itemId, firstName, lastName, itemName, itemPrice, paymentMode, orderDate) VALUES ('$orderId', '$userId', '$itemId', '$firstName', '$lastName', '$itemName', '$itemPrice', '$paymentMode', '$orderDate')";
-                                            $resultDeliveredItems = mysqli_query($conn, $insertDeliveredItemsSql);
+                                            if ($countDeliveredItems == 0) {
+                                                // Retrieve item details from items table
+                                                $getItemDetailsSql = "SELECT itemId, itemName, itemPrice FROM items WHERE itemId IN (SELECT itemId FROM orders WHERE orderId = '$orderId')";
+                                                $resultItemDetails = mysqli_query($conn, $getItemDetailsSql);
+
+                                                // Insert delivered items record for each item
+                                                while ($rowItemDetails = mysqli_fetch_assoc($resultItemDetails)) {
+                                                    $itemId = $rowItemDetails['itemId'];
+                                                    $itemName = $rowItemDetails['itemName'];
+                                                    $itemPrice = $rowItemDetails['itemPrice'];
+                                                    $delivery_date = date('Y-m-d');
+
+                                                    $insertDeliveredItemsSql = "INSERT INTO delivereditems (orderId, userId, itemId, itemName, itemPrice, amount, username, paymentMode, orderDate, delivery_date)
+            VALUES ('$orderId', '$userId', '$itemId', '$itemName', '$itemPrice', '$amount', '$username', '$paymentMode', '$orderDate', '$delivery_date')";
+                                                    $deliveredItemsResult = mysqli_query($conn, $insertDeliveredItemsSql);
+                                                }
+                                            }
                                         }
                                     } elseif ($status == 5) {
                                         echo '<div class="step active"> <span class="icon"> <i class="fa fa-check"></i> </span> <span class="text">Order Placed</span> </div>
