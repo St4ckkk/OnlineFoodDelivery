@@ -209,10 +209,12 @@ while ($statusmodalrow = mysqli_fetch_assoc($statusmodalresult)) {
                                               <div class="step active"> <span class="icon"> <i class="fa fa-check"></i> </span> <span class="text">Preparing your Order</span> </div>
                                               <div class="step active"> <span class="icon"> <i class="fa fa-truck"></i> </span> <span class="text">On the way</span> </div>
                                               <div class="step active"> <span class="icon"> <i class="fa fa-box"></i> </span> <span class="text">Order Delivered</span> </div>';
+
                                         $checkOrderStatusSql = "SELECT orderStatus FROM orders WHERE orderId = '$orderId'";
                                         $resultOrderStatus = mysqli_query($conn, $checkOrderStatusSql);
                                         $rowOrderStatus = mysqli_fetch_assoc($resultOrderStatus);
                                         $orderStatus = $rowOrderStatus['orderStatus'];
+
                                         if ($orderStatus == 4) {
                                             // Check if the sales record exists
                                             $checkSalesSql = "SELECT COUNT(*) AS count FROM sales WHERE orderId = '$orderId'";
@@ -226,27 +228,48 @@ while ($statusmodalrow = mysqli_fetch_assoc($statusmodalresult)) {
                                                 $salesResult = mysqli_query($conn, $insertSalesSql);
                                             }
 
-                                            // Check if the delivered items record exists
+
+
                                             $checkDeliveredItemsSql = "SELECT COUNT(*) AS count FROM delivereditems WHERE orderId = '$orderId'";
                                             $resultCheckDeliveredItems = mysqli_query($conn, $checkDeliveredItemsSql);
                                             $rowCheckDeliveredItems = mysqli_fetch_assoc($resultCheckDeliveredItems);
                                             $countDeliveredItems = $rowCheckDeliveredItems['count'];
 
                                             if ($countDeliveredItems == 0) {
-                                                // Retrieve item details from items table
-                                                $getItemDetailsSql = "SELECT itemId, itemName, itemPrice FROM items WHERE itemId IN (SELECT itemId FROM orders WHERE orderId = '$orderId')";
+                                                // Retrieve item details from items table only for ordered items
+                                                $getItemDetailsSql = "SELECT items.itemId, items.itemName, orderitems.itemQuantity FROM items INNER JOIN orderitems ON items.itemId = orderitems.itemId WHERE orderitems.orderId = '$orderId'";
                                                 $resultItemDetails = mysqli_query($conn, $getItemDetailsSql);
 
-                                                // Insert delivered items record for each item
-                                                while ($rowItemDetails = mysqli_fetch_assoc($resultItemDetails)) {
-                                                    $itemId = $rowItemDetails['itemId'];
-                                                    $itemName = $rowItemDetails['itemName'];
-                                                    $itemPrice = $rowItemDetails['itemPrice'];
-                                                    $delivery_date = date('Y-m-d');
+                                                // Check if any items are found
+                                                if (mysqli_num_rows($resultItemDetails) > 0) {
+                                                    // Retrieve user details from users table
+                                                    $getUserDetailsSql = "SELECT firstName, lastName FROM users WHERE id = '$userId'";
+                                                    $resultUserDetails = mysqli_query($conn, $getUserDetailsSql);
 
-                                                    $insertDeliveredItemsSql = "INSERT INTO delivereditems (orderId, userId, itemId, itemName, itemPrice, amount, username, paymentMode, orderDate, delivery_date)
-            VALUES ('$orderId', '$userId', '$itemId', '$itemName', '$itemPrice', '$amount', '$username', '$paymentMode', '$orderDate', '$delivery_date')";
-                                                    $deliveredItemsResult = mysqli_query($conn, $insertDeliveredItemsSql);
+                                                    // Check if user details are found
+                                                    if (mysqli_num_rows($resultUserDetails) > 0) {
+                                                        $userDetails = mysqli_fetch_assoc($resultUserDetails);
+                                                        $firstName = $userDetails['firstName'];
+                                                        $lastName = $userDetails['lastName'];
+
+                                                        // Initialize an empty string to store the concatenated item details
+                                                        $itemdetails = '';
+
+                                                        // Concatenate item details
+                                                        while ($rowItemDetails = mysqli_fetch_assoc($resultItemDetails)) {
+                                                            $itemName = $rowItemDetails['itemName'];
+                                                            $itemQuantity = $rowItemDetails['itemQuantity'];
+
+                                                            // Concatenate the item details
+                                                            $itemdetails .= "$itemQuantity $itemName, ";
+                                                        }
+
+                                                        $delivery_date = date('Y-m-d');
+
+                                                        $insertDeliveredItemsSql = "INSERT INTO delivereditems (orderId, userId, itemdetails, itemQuantity, amount, firstName, lastName, paymentMode, orderDate, delivery_date) VALUES ('$orderId', '$userId', '$itemdetails', '$itemQuantity', '$amount', '$firstName', '$lastName', '$paymentMode', '$orderDate', '$delivery_date')";
+
+                                                        $deliveredItemsResult = mysqli_query($conn, $insertDeliveredItemsSql);
+                                                    }
                                                 }
                                             }
                                         }
